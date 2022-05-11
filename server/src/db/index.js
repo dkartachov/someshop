@@ -1,11 +1,7 @@
+import 'dotenv/config'
 import Pool from "pg-pool";
 
-const pool = new Pool({
-    host: 'localhost',
-    user: 'postgres',
-    password: 'denpol',
-    database: 'someshop',
-});
+const pool = new Pool();
 
 export const db = {
     query: (sql, params) => {

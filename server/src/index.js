@@ -1,14 +1,27 @@
 import express from "express";
+import cors from 'cors';
 import path from 'path';
 import product from './routes/product.js';
 
-const PORT = 3001;
-const dirname = `${path.resolve()}/public`;
+const build = 'clientbuild';
+const dirname = path.resolve();
 const app = express();
 
-app.use(express.json(), express.static(path.join(path.resolve(), 'build')));
-app.use('/product', product);
+// config
+app.use(cors(), express.json(), express.static(path.join(dirname, build)));
 
-console.log(`Listening on port ${PORT}...`);
+// routes
+app.use('/products', product);
 
-app.listen(PORT);
+// send client build
+app.get('/', (req, res) => {
+    res.sendFile(path.join(dirname, build, 'index.html'), (err) => {
+        if (err) {
+            res.send('Hello!');
+        }
+    });
+});
+
+console.log(`Listening on port ${process.env.PORT}...`);
+
+app.listen(process.env.PORT);
