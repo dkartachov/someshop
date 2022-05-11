@@ -11,7 +11,7 @@ const app = express();
 app.use(cors(), express.json(), express.static(path.join(dirname, build)));
 
 // routes
-app.use('/products', product);
+app.use('/api/products', product);
 
 // send client build
 app.get('/', (req, res) => {

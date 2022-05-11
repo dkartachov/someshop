@@ -5,7 +5,7 @@ import App from './App';
 import reportWebVitals from './reportWebVitals';
 
 const getProducts = async () => {
-  const res = await fetch('http://localhost:8000/products', {
+  const res = await fetch('/api/products', {
     method: 'GET',
   });
 
