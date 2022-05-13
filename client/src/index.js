@@ -4,19 +4,8 @@ import './index.css';
 import App from './App';
 import reportWebVitals from './reportWebVitals';
 
-const getProducts = async () => {
-  const res = await fetch('/api/products', {
-    method: 'GET',
-  });
-
-  const data = await res.json();
-
-  console.log(data);
-}
-
-getProducts();
-
 const root = ReactDOM.createRoot(document.getElementById('root'));
+
 root.render(
   <React.StrictMode>
     <App />

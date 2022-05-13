@@ -10,6 +10,8 @@ router.get('/', async (req, res) => {
         res.json(rows);
     } catch(e) {
         console.error(e);
+
+        res.sendStatus(500);
     }
 });
 
@@ -21,6 +23,8 @@ router.get('/:id', async (req, res) => {
         res.json(rows[0]);
     } catch(e) {
         console.error(`Error: ${e.message}`);
+
+        res.sendStatus(500);
     }
 });
 
@@ -43,6 +47,35 @@ router.post('/', async (req, res) => {
         console.error(`Reason: ${e.message}`);
 
         res.sendStatus(500);
+    }
+});
+
+router.patch('/:id', async (req, res) => {
+    const { id } = req.params;
+    const { body } = req;
+    const options = [];
+
+    Object.keys(body).forEach(prop => {
+        options.push(`${prop} = '${body[prop]}'`);
+    });
+
+    try {
+        if (!options.length) throw Error('no columns to update');
+
+        let sql = 'UPDATE product SET ';
+        sql += `${options.join(', ')} WHERE product_id = ${id}`;
+        sql += ' RETURNING *';
+
+        const { rows } = await db.query(sql);
+
+        res.json(rows[0]);
+    } catch (e) {
+        let message = `Error updating product: ${e.message}`;
+        message = message.replaceAll('"', '\'');
+
+        console.log(message);
+
+        res.status(500).json(message);
     }
 });
 

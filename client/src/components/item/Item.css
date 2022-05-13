@@ -1,0 +1,19 @@
+.container {
+    font-family: Arial, Helvetica, sans-serif;
+    display: flex;
+    border-width: 1px;
+    border-style: solid;
+    padding: 10px 200px;
+    margin-bottom: -1px;
+}
+
+.container:hover {
+    background-color: rgb(221, 221, 221);
+    cursor: pointer;
+}
+
+.display {
+    text-align: left;
+    width: 50%;
+    position: relative;
+}

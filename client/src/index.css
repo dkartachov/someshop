@@ -2,9 +2,7 @@ body {
   margin: 0;
 }
 
-.someshop {
-  color: white;
-  font-size: 72pt;
-  padding: 50px 0 50px 30px;
-  font-weight: bold;
+.main {
+  margin-left: 160px; /* Same as the width of the sidenav */
+  padding: 0 100px;
 }
