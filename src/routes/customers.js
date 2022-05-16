@@ -1,13 +1,19 @@
 import { db } from '../db/index.js';
 import { Router } from "express";
+import { Customer } from '../models/Customer.js';
 
 const router = Router();
 
 router.get('/', async (req, res) => {
     try {
-        const { rows } = await db.query('SELECT * FROM customer');
+        const { rows } = await db.query('SELECT * FROM customer ORDER BY customer_id DESC');
+        const customers = [];
 
-        res.json(rows);
+        rows.forEach(row => {
+            customers.push(Customer(row));
+        })
+
+        res.status(200).json(customers);
     } catch(e) {
         console.error(e);
     }
@@ -18,9 +24,16 @@ router.get('/:id', async (req, res) => {
         const { id } = req.params;
         const { rows } = await db.query('SELECT * FROM customer WHERE customer_id = $1', [id]);
 
-        res.json(rows[0]);
+        if (!rows.length) throw Error(`Product with id ${id} does not exist.`);
+
+        res.json(Customer(rows[0]));
     } catch(e) {
-        console.error(`Error: ${e.message}`);
+        let message = `Error getting product: ${e.message}`;
+        message = message.replaceAll('"', '\'');
+
+        console.log(message);
+
+        res.status(500).json(message);
     }
 });
 
@@ -39,10 +52,12 @@ router.post('/', async (req, res) => {
     
         res.sendStatus(200);
     } catch (e) {
-        console.log(`Error processing query: '${sql}'`);
-        console.error(`Reason: ${e.message}`);
+        let message = `Error creating product: ${e.message}`;
+        message = message.replaceAll('"', '\'');
 
-        res.sendStatus(500);
+        console.log(message);
+
+        res.status(500).json(message);
     }
 });
 

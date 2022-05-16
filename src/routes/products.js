@@ -1,17 +1,26 @@
 import { db } from '../db/index.js';
 import { Router } from "express";
+import { Product } from '../models/Product.js';
 
 const router = Router();
 
 router.get('/', async (req, res) => {
     try {
-        const { rows } = await db.query('SELECT * FROM product');
+        const { rows } = await db.query('SELECT * FROM product ORDER BY product_id DESC');
+        const products = [];
 
-        res.json(rows);
+        rows.forEach(row => {
+            products.push(Product(row));
+        });
+
+        res.json(products);
     } catch(e) {
-        console.error(e);
+        let message = `Error getting products: ${e.message}`;
+        message = message.replaceAll('"', '\'');
 
-        res.sendStatus(500);
+        console.log(message);
+
+        res.status(500).json(message);
     }
 });
 
@@ -20,11 +29,16 @@ router.get('/:id', async (req, res) => {
         const { id } = req.params;
         const { rows } = await db.query('SELECT * FROM product WHERE product_id = $1', [id]);
 
-        res.json(rows[0]);
-    } catch(e) {
-        console.error(`Error: ${e.message}`);
+        if (!rows.length) throw Error(`Product with id ${id} does not exist.`);
 
-        res.sendStatus(500);
+        res.json(Product(rows[0]));
+    } catch(e) {
+        let message = `Error getting product: ${e.message}`;
+        message = message.replaceAll('"', '\'');
+
+        console.log(message);
+
+        res.status(500).json(message);
     }
 });
 
@@ -36,17 +50,19 @@ router.post('/', async (req, res) => {
         price,
     } = req.body;
 
-    const sql = 'INSERT INTO product (name, description, inventory, price) VALUES ($1, $2, $3, $4)';
+    const sql = 'INSERT INTO product (name, description, inventory, price) VALUES ($1, $2, $3, $4) RETURNING *';
 
     try {
-        await db.query(sql, [name, description, inventory, price]);
+        const { rows } = await db.query(sql, [name, description, inventory, price]);
     
-        res.sendStatus(200);
+        res.status(200).json(Product(rows[0]));
     } catch (e) {
-        console.log(`Error processing query: '${sql}'`);
-        console.error(`Reason: ${e.message}`);
+        let message = `Error updating product: ${e.message}`;
+        message = message.replaceAll('"', '\'');
 
-        res.sendStatus(500);
+        console.log(message);
+
+        res.status(500).json(message);
     }
 });
 
@@ -67,6 +83,8 @@ router.patch('/:id', async (req, res) => {
         sql += ' RETURNING *';
 
         const { rows } = await db.query(sql);
+
+        if (!rows.length) throw Error(`Product with id ${id} does not exist.`);
 
         res.json(rows[0]);
     } catch (e) {
