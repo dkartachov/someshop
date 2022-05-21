@@ -5,5 +5,6 @@ export const Product = (product) => {
         description: product.description,
         inventory: product.inventory,
         price: product.price,
+        // image: product.image,
     };
 }

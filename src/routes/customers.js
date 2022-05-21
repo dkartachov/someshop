@@ -1,17 +1,13 @@
 import { db } from '../db/index.js';
 import { Router } from "express";
 import { Customer } from '../models/Customer.js';
+import { get, create } from '../db/queries.js';
 
 const router = Router();
 
 router.get('/', async (req, res) => {
     try {
-        const { rows } = await db.query('SELECT * FROM customer ORDER BY customer_id DESC');
-        const customers = [];
-
-        rows.forEach(row => {
-            customers.push(Customer(row));
-        })
+        const customers = await get('customer');
 
         res.status(200).json(customers);
     } catch(e) {
@@ -22,13 +18,13 @@ router.get('/', async (req, res) => {
 router.get('/:id', async (req, res) => {
     try {
         const { id } = req.params;
-        const { rows } = await db.query('SELECT * FROM customer WHERE customer_id = $1', [id]);
+        const customer = await get('customer', id);
 
-        if (!rows.length) throw Error(`Product with id ${id} does not exist.`);
+        if (!customer) throw Error(`Customer with id ${id} does not exist.`);
 
-        res.json(Customer(rows[0]));
+        res.status(200).json(customer);
     } catch(e) {
-        let message = `Error getting product: ${e.message}`;
+        let message = `Error getting customer: ${e.message}`;
         message = message.replaceAll('"', '\'');
 
         console.log(message);
@@ -38,21 +34,20 @@ router.get('/:id', async (req, res) => {
 });
 
 router.post('/', async (req, res) => {
-    const {
-        first_name,
-        last_name,
-        email,
-        phone_number,
-    } = req.body;
-
-    const sql = 'INSERT INTO customer (first_name, last_name, email, phone_number) VALUES ($1, $2, $3, $4)';
+    const { body } = req;
+    const params = {
+        first_name: body.name?.first,
+        last_name: body.name?.last,
+        email: body.contact?.email,
+        phone_number: body.contact?.phone,
+    }
 
     try {
-        await db.query(sql, [first_name, last_name, email, phone_number]);
+        const customer = await create('customer', params);
     
-        res.sendStatus(200);
+        res.status(200).json(customer);
     } catch (e) {
-        let message = `Error creating product: ${e.message}`;
+        let message = `Error creating customer: ${e.message}`;
         message = message.replaceAll('"', '\'');
 
         console.log(message);

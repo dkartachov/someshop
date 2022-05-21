@@ -1,19 +1,15 @@
 import { db } from '../db/index.js';
 import { Router } from "express";
-import { Product } from '../models/Product.js';
+import { get, create, deleteOne } from '../db/queries.js';
+import fs from 'fs';
 
 const router = Router();
 
 router.get('/', async (req, res) => {
     try {
-        const { rows } = await db.query('SELECT * FROM product ORDER BY product_id DESC');
-        const products = [];
+        const products = await get('product');
 
-        rows.forEach(row => {
-            products.push(Product(row));
-        });
-
-        res.json(products);
+        res.status(200).json(products);
     } catch(e) {
         let message = `Error getting products: ${e.message}`;
         message = message.replaceAll('"', '\'');
@@ -27,11 +23,11 @@ router.get('/', async (req, res) => {
 router.get('/:id', async (req, res) => {
     try {
         const { id } = req.params;
-        const { rows } = await db.query('SELECT * FROM product WHERE product_id = $1', [id]);
+        const product = await get('product', id);
 
-        if (!rows.length) throw Error(`Product with id ${id} does not exist.`);
+        if (!product) throw Error(`Product with id ${id} does not exist.`);
 
-        res.json(Product(rows[0]));
+        res.status(200).json(product);
     } catch(e) {
         let message = `Error getting product: ${e.message}`;
         message = message.replaceAll('"', '\'');
@@ -43,19 +39,18 @@ router.get('/:id', async (req, res) => {
 });
 
 router.post('/', async (req, res) => {
-    const {
-        name,
-        description,
-        inventory,
-        price,
-    } = req.body;
-
-    const sql = 'INSERT INTO product (name, description, inventory, price) VALUES ($1, $2, $3, $4) RETURNING *';
+    const { body } = req;
+    const params = {
+        name: body.name,
+        description: body.description,
+        inventory: body.inventory,
+        price: body.price,
+    };
 
     try {
-        const { rows } = await db.query(sql, [name, description, inventory, price]);
+        const product = await create('product', params);
     
-        res.status(200).json(Product(rows[0]));
+        res.status(200).json(product[0]);
     } catch (e) {
         let message = `Error updating product: ${e.message}`;
         message = message.replaceAll('"', '\'');
@@ -94,6 +89,42 @@ router.patch('/:id', async (req, res) => {
         console.log(message);
 
         res.status(500).json(message);
+    }
+});
+
+router.delete('/:id', async (req, res) => {
+    const { id } = req.params;
+
+    try {
+        await deleteOne('product', id);
+
+        res.status(200).json(`product id = ${id} deleted`);
+    } catch (e) {
+        let message = `Error deleting product: ${e.message}`;
+        message = message.replaceAll('"', '\'');
+
+        console.log(message);
+
+        res.status(500).json(message);
+    }
+});
+
+router.patch('/upload/:id', async (req, res) => {
+    const { id } = req.params;
+    const { file } = req.files;
+    const path = file.tempFilePath;
+    const size = file.size;
+
+    try {
+        fs.readFile(path, async (err, data) => {
+            if (err) throw Error();
+
+            await db.query('UPDATE product SET image = $1 WHERE product_id = $2', [data, id]);
+        });
+
+        res.sendStatus(200);
+    } catch (e) {
+        res.sendStatus(500);   
     }
 });
 
