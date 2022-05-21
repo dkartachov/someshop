@@ -9,3 +9,9 @@ export const moduleColumnMap = {
     customers: ['Customer'],
     orders: ['Order']
 }
+
+export const moduleEndpointMap = {
+    products: 'product',
+    customers: 'customer',
+    orders: 'order',
+}
