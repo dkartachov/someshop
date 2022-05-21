@@ -1,12 +1,16 @@
 import { useState } from 'react';
+import {
+    SpeedDial,
+    SpeedDialAction,
+    SpeedDialIcon,
+    LinearProgress,
+    Stack,
+} from '@mui/material'
 import AddIcon from '@mui/icons-material/Add'
 import { DataGrid } from '@mui/x-data-grid';
 import { getColumns } from '../../utils/utils';
-import { LinearProgress } from '@mui/material';
-import { SpeedDial, SpeedDialAction } from '@mui/material';
 import KeyboardArrowRightIcon from '@mui/icons-material/KeyboardArrowRight'
 import DeleteIcon from '@mui/icons-material/Delete';
-import { SpeedDialIcon } from '@mui/material';
 
 const ListView = ({ module, records, fetching, loading, onClickAdd, onClickRecord }) => {
     const [selection, setSelection] = useState([]);
@@ -31,7 +35,6 @@ const ListView = ({ module, records, fetching, loading, onClickAdd, onClickRecor
     }
 
     const actions = [
-        // { icon: <AddIcon />, name: 'Add', onClick: onClickAdd },
         { icon: <DeleteIcon />, name: 'Delete', onClick: onDeleteSelection },
     ];
 
@@ -64,7 +67,13 @@ const ListView = ({ module, records, fetching, loading, onClickAdd, onClickRecor
                         // onRowClick={onClickRecord}
                         hideFooterSelectedRowCount
                         components={{
-                            NoRowsOverlay: () => (!fetching && !records.length) ? 'no rows' : '',
+                            NoRowsOverlay: () => (
+                                (!fetching && !records.length) ? 
+                                    <Stack height="100%" alignItems="center" justifyContent="center">
+                                        No rows :(
+                                    </Stack>
+                                : ''
+                            ),
                             LoadingOverlay: LinearProgress,
                         }}
                         loading={loading}
